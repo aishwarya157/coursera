@@ -26,7 +26,7 @@ function ShoppingListCheckOffService() {
   var service = this;
   var toBuyItems = [
     { name: "Strawberries", quantity: 10 },
-    { name: "Apples", quantity: 7 },
+    { name: "Apples", quantity: 8 },
     { name: "Bananas", quantity: 5 },
     { name: "Oranges", quantity: 6 },
     { name: "Pineapple", quantity: 1 }];
