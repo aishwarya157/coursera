@@ -5,16 +5,16 @@ angular.module('NarrowItDownApp', [])
 .controller('NarrowItDownController', NarrowItDownController)
 .service('MenuSearchService', MenuSearchService)
 .directive('foundItems', FoundItemsDirective)
-.constant('ApiBasePath', "http://davids-restaurant.herokuapp.com");
+.constant('ApiBasePath', "https://davids-restaurant.herokuapp.com");
 
 
 NarrowItDownController.$inject = ['MenuSearchService'];
 function NarrowItDownController(MenuSearchService) {
   var narrowCtrl = this;
-  narrowCtrl.found = MenuSearchService.getItems();
+
   narrowCtrl.searchMenuItems = function () {
-    if (narrowCtrl.searchTerm === "") {
-      MenuSearchService.clear();
+    if (narrowCtrl.searchTerm === "" || narrowCtrl.searchTerm===undefined) {
+      narrowCtrl.found = [];
     } else {
       MenuSearchService.getMatchedMenuItems(narrowCtrl.searchTerm)
       .then(function(result) {
@@ -45,13 +45,12 @@ function FoundItemsDirective() {
 
 function FoundItemsDirectiveController() {
   var foundCtrl = this;
-
+  foundCtrl.isBeforeSearch = function() {
+    return foundCtrl.items == undefined;
+  }
   foundCtrl.isNothingFound = function() {
-    if (foundCtrl.items.length === 0) {
-      return true;
-    }
-    return false;
-  };
+    return foundCtrl.items != undefined && foundCtrl.items.length === 0;
+  }
 }
 
 MenuSearchService.$inject = ['$http', 'ApiBasePath'];
@@ -60,18 +59,14 @@ function MenuSearchService($http, ApiBasePath) {
   var foundItems = [];
 
   service.getMatchedMenuItems = function(searchTerm) {
-    foundItems.splice(0, foundItems.length);
-    if (searchTerm === "") {
-      return foundItems;
-    }
     return $http({
       method: "GET",
       url: (ApiBasePath + "/menu_items.json")
     }).then(function(result) {
       var allItems = result.data.menu_items;
-      foundItems.splice(0, foundItems.length);
+      foundItems = [];
       for (var index = 0; index < allItems.length; ++index) {
-        if (allItems[index].description.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1) {
+        if (allItems[index].description.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0) {
           foundItems.push(allItems[index]);
         }
       }
@@ -79,17 +74,10 @@ function MenuSearchService($http, ApiBasePath) {
     });
   };
 
-  service.clear = function() {
-    foundItems.splice(0, foundItems.length);
-  }
-
   service.removeItem = function(itemIndex) {
     foundItems.splice(itemIndex, 1);
   };
 
-  service.getItems = function() {
-    return foundItems;
-  };
 }
 
 })();
